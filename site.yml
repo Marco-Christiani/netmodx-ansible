@@ -1,15 +1,80 @@
-- name: Configure NetmodX Env
-  hosts: pi1
+---
+- name: Configure NetModX rPis Env
+  hosts: rpis
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
   vars_files:
-    - creds.yml
+      - creds.yml
+  vars_prompt: 
+    - name: "githubuser" 
+      prompt: "Enter your github username" 
+      private: no 
+    - name: "githubpassword" 
+      prompt: "Enter your github password" 
+      private: yes
   tasks:
     - import_tasks: roles/core.yml
       tags: core
-    - import_tasks: roles/ditto.yml
-      tags: ditto
     - import_tasks: roles/dev.yml
       tags: dev
     - import_tasks: roles/docker.yml
       tags: docker
-    - import_tasks: roles/sensehat-node-ipc.yml
-      tags: sni
+    - import_tasks: roles/ditto.yml
+      tags: ditto
+    - import_tasks: roles/sensor-app.yml
+      tags: sensor
+    - import_tasks: roles/logjammer.yml
+      tags: logjammer
+- name: Configure FOB
+  hosts: fob
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  vars_files:
+    - creds.yml
+  vars:
+    role: "base"
+    BROKER_HOST: localhost
+    BROKER_PORT: 9092
+    USE_BLUETOOTH: false
+    USE_LAN: true
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/dev.yml
+      tags: dev
+    - import_tasks: roles/docker.yml
+      tags: docker
+    - import_tasks: roles/redpanda.yml
+      tags: redpanda
+    - import_tasks: roles/ditto.yml
+      tags: ditto
+    - import_tasks: roles/collector.yml
+      tags: collector
+- name: Configure MRZR laptop
+  hosts: mrzr
+  vars_files:
+    - creds.yml
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  vars:
+    role: "collector"
+    BROKER_HOST: localhost
+    BROKER_PORT: 9092
+    USE_BLUETOOTH: true
+    USE_LAN: true
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/dev.yml
+      tags: dev
+    - import_tasks: roles/docker.yml
+      tags: docker
+    - import_tasks: roles/redpanda.yml
+      tags: redpanda
+    - import_tasks: roles/collector.yml
+      tags: collector
+    - import_tasks: roles/ditto.yml
+      tags: ditto

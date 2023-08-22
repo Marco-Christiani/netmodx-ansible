@@ -1,0 +1,23 @@
+---
+- name: Fetch RedPanda
+  become: yes
+  ansible.builtin.get_url:
+    url: https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh
+    dest: /tmp/bash.deb.sh
+    mode: '0700'
+- name: Setup RedPanda Repo
+  become: yes
+  ansible.builtin.command: /tmp/bash.deb.sh
+- name: Install RedPanda Package
+  become: yes
+  apt:
+    state: latest
+    update_cache: yes
+    name:
+      - redpanda
+- name: Start RedPanda Service
+  become: yes
+  service:
+    name: redpanda
+    state: started
+    enabled: yes

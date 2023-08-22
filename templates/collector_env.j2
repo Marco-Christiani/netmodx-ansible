@@ -1,0 +1,11 @@
+APP_ID={{ lookup('ansible.builtin.env', "APP_ID") }}
+APP_TOKEN={{ lookup('ansible.builtin.env', "APP_TOKEN") }}
+RAW_COLLECTION_NAME={{ lookup('ansible.builtin.env', "RAW_COLLECTION_NAME") }}
+RAW_TOPIC_NAME={{ lookup('ansible.builtin.env', "RAW_TOPIC_NAME") }}
+PRODUCT_TOPIC_NAME={{ lookup('ansible.builtin.env', "PRODUCT_TOPIC_NAME") }}
+PRODUCT_COLLECTION_NAME={{ lookup('ansible.builtin.env', "PRODUCT_COLLECTION_NAME") }}
+BROKER_HOST={{ BROKER_HOST }}
+BROKER_PORT={{ BROKER_PORT }}
+USE_BLUETOOTH={{ USE_BLUETOOTH }}
+USE_LAN={{ USE_LAN }}
+

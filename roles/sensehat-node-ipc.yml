@@ -7,19 +7,25 @@
   tags: sni-install
 
 - name: Run npm ci
-  command:
-    cmd: npm ci --no-progress
-    chdir: "{{ ansible_user_dir }}/sensehat-node-ipc"
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/sensehat-node-ipc
+    npm ci --no-progress
   tags: sni-install
 
 - name: Run npm run clean-build
-  command:
-    cmd: npm run clean-build
-    chdir: "{{ ansible_user_dir }}/sensehat-node-ipc"
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/sensehat-node-ipc
+    npm run clean-build
   tags: sni-install
 
 - name: Run npm test
-  command:
-    cmd: npm test
-    chdir: "{{ ansible_user_dir }}/sensehat-node-ipc"
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/sensehat-node-ipc
+    npm test
   tags: sni-test

@@ -1,0 +1,50 @@
+- name: Clone sensor app repository
+  git:
+    repo: https://{{ githubuser | urlencode }}:{{ githubpassword | urlencode }}@github.com/Marco-Christiani/ditto-nmx
+    dest: "{{ ansible_user_dir }}/ditto-nmx"
+    clone: yes
+    update: yes
+    force: yes
+  tags: sensor-install
+
+- name: Run npm ci
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto-nmx
+    npm install --no-progress
+    npm i -g typescript
+    npm i -g pm2
+  tags: sensor-install
+
+- name: Run npm run clean-build
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto-nmx
+    npm run clean-build
+  tags: sensor-install
+
+- name: Run npm test
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto-nmx
+    npm test
+  tags: sensor-test
+
+- name: Start Ditto service if not running
+  pm2:
+    name: sensor 
+    chdir: "{{ ansible_user_dir }}/ditto-nmx"
+    script: "node index.js"
+    state: started
+  tags: sensor-install 
+
+- name: Setup sensor systemd service
+  become: yes
+  shell: |
+    pm2 startup systemd -u pi --hp /home/pi
+  args:
+    creates: /etc/systemd/system/multi-user.target.wants/pm2-pi.service
+  tags: sensor-install 

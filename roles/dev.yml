@@ -65,10 +65,10 @@
       file:
         path: "{{ ansible_env.HOME }}/.config/nvim/"
         state: absent
-      when: not nvim_config_stat.stat.exist
+      when: not nvim_config_stat.stat.exists
 
     - name: Clone a basic Nvim config
       git:
         repo: 'https://github.com/nvim-lua/kickstart.nvim'
         dest: "{{ ansible_env.HOME }}/.config/nvim/"
-      when: not nvim_config_stat.stat.exist
+      when: not nvim_config_stat.stat.exists

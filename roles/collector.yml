@@ -1,0 +1,51 @@
+- name: Clone ditto-to-redpanda Repo 
+  git:
+    repo: https://github.com/getditto-shared/ditto-to-redpanda
+    dest: "{{ ansible_user_dir }}/ditto-to-redpanda"
+    clone: yes
+    update: yes
+  tags: collector
+
+- name: Run npm ci
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto-to-redpanda
+    npm i -g typescript
+    npm i -g pm2
+    npm ci --no-progress
+  args:
+    creates: "{{ ansible_user_dir }}/ditto-to-redpanda/node_modules/@dittolive"
+  tags: collector
+
+- name: Place .env file
+  ansible.builtin.template:
+    src: templates/collector_env.j2
+    dest: "{{ ansible_user_dir }}/ditto-to-redpanda/.env"
+    mode: '0600'
+
+- name: Run tsc compile
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto-to-redpanda
+    tsc base.ts
+    tsc collector.ts
+  args:
+    creates: "{{ ansible_user_dir }}/ditto-to-redpanda/collector.js"
+  tags: collector
+
+- name: Start Ditto service if not running
+  pm2:
+    name: collector
+    chdir: "{{ ansible_user_dir }}/ditto-to-redpanda"
+    script: "node {{ role }}.js"
+    state: started
+  tags: collector
+
+- name: Setup {{ role }} systemd service
+  become: yes
+  shell: |
+    pm2 startup systemd -u saic --hp /home/saic
+  args:
+    creates: /etc/systemd/system/multi-user.target.wants/pm2-saic.service

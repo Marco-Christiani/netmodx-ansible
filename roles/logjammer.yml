@@ -1,0 +1,33 @@
+- name: Clone 
+  git:
+    repo: https://github.com/getditto-shared/logjammer
+    dest: "{{ ansible_user_dir }}/logjammer"
+    clone: yes
+    update: yes
+  tags: logjammer
+
+- name: Run npm ci
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/logjammer
+    nvm use v20.5.1
+    npm i -g typescript
+    npm ci --no-progress
+  tags: logjammer
+
+- name: Place .env file
+  ansible.builtin.template:
+    src: templates/logjammer_env.j2
+    dest: "{{ ansible_user_dir }}/logjammer/.env"
+    mode: '0600'
+  tags: logjammer
+
+- name: Run tsc compile
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/logjammer
+    nvm use v20.5.1
+    tsc index.ts
+  tags: logjammer

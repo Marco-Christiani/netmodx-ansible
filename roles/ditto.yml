@@ -22,6 +22,7 @@
       unarchive:
         src: '{{ ansible_env.HOME }}/bluez-5.66.tar.xz'
         dest: '{{ ansible_env.HOME }}'
+        creates: '{{ ansible_env.HOME }}/bluez-5.66'
         remote_src: yes
 
     - name: Install BlueZ
@@ -29,19 +30,30 @@
       command:
         cmd: "{{ item }}"
         chdir: '{{ ansible_env.HOME }}/bluez-5.66'
+        creates: '/usr/local/bin/bluetoothctl'
       loop:
         - ./configure
         - make
         - make install
-  tags: ditto_bluez
-
-- name: Modify bluetooth service file
-  become: true
-  lineinfile:
-    path: /usr/lib/systemd/system/bluetooth.service
-    regexp: '^ExecStart='
-      # line: 'ExecStart=/usr/lib/bluetooth/bluetoothd -P battery'
-    line: 'ExecStart=/usr/sbin/bluetoothd -P battery'
+    - name: Modify bluetooth service file ConfigurationDirectoryMode
+      become: true
+      lineinfile:
+        path: /usr/lib/systemd/system/bluetooth.service
+        regexp: '^ConfigurationDirectoryMode='
+        line: 'ConfigurationDirectoryMode=0755'
+    - name: Fix Controller line in /etc/bluetooth/main.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/bluetooth/main.conf
+        regexp: '^[Controller]'
+        line: '#[Controller]'
+    - name: Modify bluetooth service file
+      become: true
+      lineinfile:
+        path: /usr/lib/systemd/system/bluetooth.service
+        regexp: '^ExecStart='
+        line: 'ExecStart=/usr/local/libexec/bluetooth/bluetoothd --noplugin=sap -P battery --experimental'
+      register: bluez
   tags: ditto_bluez
 
 - name: Reload and restart bluetooth service
@@ -50,6 +62,7 @@
     daemon_reload: yes
     name: bluetooth
     state: restarted
+  when: bluez.changed
   tags: ditto_bluez
 
 - name: Set bluetooth configuration
@@ -59,18 +72,22 @@
   loop:
     - hciconfig hci0 down
     - btmgmt bredr off
+    - btmgmt le on
     - hciconfig hci0 up
+  when: bluez.changed
   tags: ditto_bluez
 
 - name: Get path to hcitool
   command: which hcitool
   register: hcitool_path
   changed_when: false
+  when: bluez.changed
   tags: ditto_bluez
 
 - name: Set BlueZ support for multiple advertisements
   become: true
   shell: "setcap 'cap_net_raw,cap_net_admin+eip' {{ hcitool_path.stdout }}"
+  when: bluez.changed
   tags: ditto_bluez
 
 - name: Install NVM and Node.js
@@ -78,8 +95,10 @@
     wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    nvm install 18.13
+    nvm install 20.5.1
+    nvm alias default 20.5.1
     npm install -g typescript@^3.1.6
+    npm install -g pm2
   args:
     executable: /bin/bash
   tags: ditto_install
@@ -100,8 +119,8 @@
     path: "{{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/index.ts"
     regexp: "ditto = new Ditto\\({ type: 'onlinePlayground', appID: '(.*)', token: '(.*)' }\\)"
     line: "ditto = new Ditto({ type: 'onlinePlayground', appID: '{{ DITTO_APP_ID }}', token: '{{ DITTO_TOKEN }}' })"
-
   tags: ditto_demo
+
 - name: Install and build the demo app
   shell: |
     export NVM_DIR="$HOME/.nvm"
