@@ -29,7 +29,7 @@
   pm2:
     name: sensor 
     chdir: "{{ ansible_user_dir }}/ditto-nmx"
-    script: "node index.js"
+    script: "node dist/pi/sense-node.js"
     state: started
   tags: sensor-install 
 

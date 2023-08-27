@@ -24,12 +24,12 @@
       tags: docker
     - import_tasks: roles/ditto.yml
       tags: ditto
-    #    - import_tasks: roles/sensor-app.yml
-      #  tags: sensor
+    - import_tasks: roles/sensor-app.yml
+      tags: sensor
     - import_tasks: roles/model.yml
       tags: model_receiver
 - name: Configure NetModX Comm Node Env
-  hosts: leader
+  hosts: comms
   environment:
     NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
     PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"

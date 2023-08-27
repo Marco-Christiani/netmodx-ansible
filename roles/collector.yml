@@ -23,6 +23,7 @@
     src: templates/collector_env.j2
     dest: "{{ ansible_user_dir }}/ditto-to-redpanda/.env"
     mode: '0600'
+  tags: collector
 
 - name: Run tsc compile
   shell: |
@@ -43,9 +44,16 @@
     state: started
   tags: collector
 
+# - name: Start Ditto service if not running
+#   shell:
+#     chdir: "{{ ansible_user_dir }}/ditto-to-redpanda"
+#     script: "pm2 node {{ role }}.js"
+#   tags: collector
+
 - name: Setup {{ role }} systemd service
   become: yes
   shell: |
     pm2 startup systemd -u saic --hp /home/saic
   args:
     creates: /etc/systemd/system/multi-user.target.wants/pm2-saic.service
+  tags: collector
