@@ -5,6 +5,7 @@
     clone: yes
     update: yes
     force: yes
+  register: sensor_install
   tags: sensor-install
 
 - name: Run npm ci
@@ -15,6 +16,7 @@
     npm install --no-progress
     npm i -g typescript
     npm i -g pm2
+  when: sensor_install.changed
   tags: sensor-install
 
 - name: Run npm run clean-build
@@ -23,13 +25,14 @@
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     cd {{ ansible_user_dir }}/ditto-nmx
     npm run clean-build
+  when: sensor_install.changed
   tags: sensor-install
 
 - name: Start Ditto service if not running
   pm2:
     name: sensor 
     chdir: "{{ ansible_user_dir }}/ditto-nmx"
-    script: "node index.js"
+    script: "npm run start-sense-node"
     state: started
   tags: sensor-install 
 

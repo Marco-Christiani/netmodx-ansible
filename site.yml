@@ -15,12 +15,18 @@
       tags: core
     - import_tasks: roles/dev.yml
       tags: dev
-    - import_tasks: roles/docker.yml
-      tags: docker
+    #    - import_tasks: roles/docker.yml
+      #  tags: docker
     - import_tasks: roles/ditto.yml
       tags: ditto
-    #    - import_tasks: roles/sensor-app.yml
-      #  tags: sensor
+    - name: Stop service docker, if started
+      become: true
+      ansible.builtin.service:
+        name: docker
+        state: stopped
+        enabled: false
+    - import_tasks: roles/sensor-app.yml
+      tags: sensor
     - import_tasks: roles/model.yml
       tags: model_receiver
 - name: Configure NetModX Comm Node Env

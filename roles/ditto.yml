@@ -90,19 +90,6 @@
   when: bluez.changed
   tags: ditto_bluez
 
-- name: Install NVM and Node.js
-  shell: |
-    wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    nvm install 20.5.1
-    nvm alias default 20.5.1
-    npm install -g typescript@^3.1.6
-    npm install -g pm2
-  args:
-    executable: /bin/bash
-  tags: ditto_install
-
 - name: Check if Ditto samples repo already exists
   stat:
     path: "{{ ansible_env.HOME }}/ditto_demo"
@@ -112,13 +99,29 @@
   git:
     repo: 'https://github.com/getditto/samples.git'
     dest: "{{ ansible_env.HOME }}/ditto_demo"
+  register: ditto_demo
   when: not ditto_repo_stat.stat.exists
+
+- name: Install NVM and Node.js
+  shell: |
+    wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 20.5.1
+    nvm alias default 20.5.1
+    npm install -g typescript@^3.1.6
+    npm install -g pm2
+  when: ditto_demo.changed
+  args:
+    executable: /bin/bash
+  tags: ditto_install
 
 - name: Replace Ditto configuration in index.ts
   lineinfile:
     path: "{{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/index.ts"
     regexp: "ditto = new Ditto\\({ type: 'onlinePlayground', appID: '(.*)', token: '(.*)' }\\)"
     line: "ditto = new Ditto({ type: 'onlinePlayground', appID: '{{ DITTO_APP_ID }}', token: '{{ DITTO_TOKEN }}' })"
+  when: ditto_demo.changed
   tags: ditto_demo
 
 - name: Install and build the demo app
@@ -128,4 +131,5 @@
     cd {{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/
     npm install
     npm run build
+  when: ditto_demo.changed
   tags: ditto_demo

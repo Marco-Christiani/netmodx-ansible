@@ -4,6 +4,7 @@
     dest: "{{ ansible_user_dir }}/model_receiver"
     clone: yes
     update: yes
+  register: model_receiver
   tags: model_receiver
 
 - name: Run npm ci
@@ -14,6 +15,7 @@
     nvm use v20.5.1
     npm i -g typescript
     npm ci --no-progress
+  when: model_receiver.changed
   tags: model_receiver 
 
 - name: Place .env file
@@ -21,6 +23,7 @@
     src: templates/model_receiver_env.j2
     dest: "{{ ansible_user_dir }}/model_receiver/.env"
     mode: '0600'
+  when: model_receiver.changed
   tags: model_receiver
 
 - name: Run tsc compile
@@ -31,6 +34,7 @@
     nvm use v20.5.1
     tsc receiver.ts
     tsc sender.ts
+  when: model_receiver.changed
   tags: model_receiver
 
 - name: Start Ditto service if not running
