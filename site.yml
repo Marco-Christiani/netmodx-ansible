@@ -19,12 +19,12 @@
       #  tags: docker
     - import_tasks: roles/ditto.yml
       tags: ditto
-    - name: Stop service docker, if started
-      become: true
-      ansible.builtin.service:
-        name: docker
-        state: stopped
-        enabled: false
+    # - name: Stop service docker, if started
+      # become: true
+      # ansible.builtin.service:
+        # name: docker
+        # state: stopped
+        # enabled: false
     - import_tasks: roles/sensor-app.yml
       tags: sensor
     - import_tasks: roles/model.yml

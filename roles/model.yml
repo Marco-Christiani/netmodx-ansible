@@ -23,7 +23,6 @@
     src: templates/model_receiver_env.j2
     dest: "{{ ansible_user_dir }}/model_receiver/.env"
     mode: '0600'
-  when: model_receiver.changed
   tags: model_receiver
 
 - name: Run tsc compile
@@ -49,6 +48,7 @@
   become: yes
   shell: |
     pm2 startup systemd -u saic --hp /home/saic
+    pm2 save
   args:
     creates: /etc/systemd/system/multi-user.target.wants/pm2-saic.service
   tags: model_receiver

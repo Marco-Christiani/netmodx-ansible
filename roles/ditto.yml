@@ -116,20 +116,20 @@
     executable: /bin/bash
   tags: ditto_install
 
-- name: Replace Ditto configuration in index.ts
-  lineinfile:
-    path: "{{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/index.ts"
-    regexp: "ditto = new Ditto\\({ type: 'onlinePlayground', appID: '(.*)', token: '(.*)' }\\)"
-    line: "ditto = new Ditto({ type: 'onlinePlayground', appID: '{{ DITTO_APP_ID }}', token: '{{ DITTO_TOKEN }}' })"
-  when: ditto_demo.changed
-  tags: ditto_demo
+#- name: Replace Ditto configuration in index.ts
+  #  lineinfile:
+#  path: "{{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/index.ts"
+#    regexp: "ditto = new Ditto\\({ type: 'onlinePlayground', appID: '(.*)', token: '(.*)' }\\)"
+#    line: "ditto = new Ditto({ type: 'onlinePlayground', appID: '{{ DITTO_APP_ID }}', token: '{{ DITTO_TOKEN }}' })"
+  #  when: ditto_demo.changed
+  #tags: ditto_demo
 
-- name: Install and build the demo app
-  shell: |
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    cd {{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/
-    npm install
-    npm run build
-  when: ditto_demo.changed
-  tags: ditto_demo
+#- name: Install and build the demo app
+  #  shell: |
+#  export NVM_DIR="$HOME/.nvm"
+#    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+#    cd {{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/
+#    npm install
+#    npm run build
+  # when: ditto_demo.changed
+  #  tags: ditto_demo

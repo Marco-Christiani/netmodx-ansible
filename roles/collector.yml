@@ -47,5 +47,6 @@
   become: yes
   shell: |
     pm2 startup systemd -u saic --hp /home/saic
+    pm2 save
   args:
     creates: /etc/systemd/system/multi-user.target.wants/pm2-saic.service
